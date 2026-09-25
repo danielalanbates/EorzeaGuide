@@ -85,8 +85,9 @@ Optional personal-use LuminaSupplemental import: `tools/import_supplemental_gear
 reads its GPL-3.0 duty-loot CSVs and the current ContentFinderCondition CSV, then writes
 `EorzeaGuide/bin/Release/Data/SupplementalGearSources.json` in Downloads. The plugin loads
 it if present. On 2026-09-25 this raised known-source gear from 18,304 to 23,090 of
-29,057. The source checkout and generated index stay outside git; public packaging must
-omit the JSON. The remaining items need other source types and data verification.
+29,057, and classified 1,455 more as no longer obtainable. The remaining 4,512 need
+other source types or status verification. The source checkout and generated index stay
+outside git; public packaging must omit the JSON.
 
 The Duties tab now offers a quest guide for 243 duties with a Questionable duty step,
 including paths fetched after the database first loads. It labels those as related quests

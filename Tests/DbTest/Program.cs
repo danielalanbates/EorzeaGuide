@@ -71,7 +71,7 @@ static class Program {
     }
     Console.WriteLine($"aetheryte horizontal positions vs reference: {ok} within 15y, {bad} off, {missing} not in our zones (city aethernet shards etc.)");
     sw.Restart(); db.BuildGear();
-    Console.WriteLine($"gear {db.Gear!.Count} items in {sw.ElapsedMilliseconds}ms; with a known source {db.Gear.Count(g => !g.Sources[0].StartsWith("Source not indexed"))}; with vendor location {db.Gear.Count(g => g.SourcePoints.Count > 0)}");
+    Console.WriteLine($"gear {db.Gear!.Count} items in {sw.ElapsedMilliseconds}ms; with a known source {db.Gear.Count(g => !g.Sources[0].StartsWith("Source not indexed") && !g.Sources[0].StartsWith("No longer obtainable"))}; unavailable {db.Gear.Count(g => g.Sources[0].StartsWith("No longer obtainable"))}; with vendor location {db.Gear.Count(g => g.SourcePoints.Count > 0)}");
     var g0 = db.Gear.First(g => g.Name == "Weathered Shortsword");
     Console.WriteLine($"  e.g. {g0.Name}: i{g0.ItemLevel} {g0.Slot} [{g0.Jobs}] <- {string.Join("; ", g0.Sources)}");
     return 0;

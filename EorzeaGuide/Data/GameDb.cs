@@ -476,6 +476,7 @@ public sealed class GameDb
 
             var sources = new Dictionary<uint, List<string>>();
             var points = new Dictionary<uint, List<WorldPoint>>();
+            var unobtainable = new HashSet<uint>();
             void Add(uint item, string src, uint? shop = null)
             {
                 if (!sources.TryGetValue(item, out var l)) sources[item] = l = new();
@@ -529,6 +530,9 @@ public sealed class GameDb
                             foreach (var source in item.Value.EnumerateArray())
                                 if (source.ValueKind == JsonValueKind.String && source.GetString() is { Length: > 0 } label)
                                     Add(itemId, label);
+                    if (doc.RootElement.TryGetProperty("unobtainable", out var oldItems))
+                        foreach (var item in oldItems.EnumerateArray())
+                            if (item.TryGetUInt32(out var itemId)) unobtainable.Add(itemId);
                 }
                 catch (Exception ex) { Plugin.Log.Warning(ex, "supplemental gear sources could not be loaded"); }
             }
@@ -548,6 +552,7 @@ public sealed class GameDb
                     FromQuest = fromQuest.GetValueOrDefault(it.RowId), FromAchievement = fromAch.GetValueOrDefault(it.RowId),
                 };
                 if (sources.TryGetValue(it.RowId, out var s)) g.Sources = s;
+                else if (unobtainable.Contains(it.RowId)) g.Sources.Add("No longer obtainable (supplemental data)");
                 else g.Sources.Add(it.IsUntradable ? "Source not indexed (untradable)" : "Source not indexed (tradable)");
                 if (points.TryGetValue(it.RowId, out var p)) g.SourcePoints = p;
                 list.Add(g);

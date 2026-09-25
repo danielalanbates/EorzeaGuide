@@ -47,11 +47,15 @@ def main():
     for row in rows(args.supplemental / "DungeonChestItem.csv"):
         add(int(row["ItemId"]), chests.get(int(row["ChestId"]), 0), "Duty chest")
 
+    unobtainable = sorted({int(row["ItemId"])
+                           for row in rows(args.supplemental / "UnobtainableItem.csv")
+                           if row["ItemId"].isdigit()})
     result = {"source": "LuminaSupplemental (GPL-3.0), local personal-use import",
-              "sources": {str(item): sorted(labels) for item, labels in sorted(sources.items())}}
+              "sources": {str(item): sorted(labels) for item, labels in sorted(sources.items())},
+              "unobtainable": unobtainable}
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print(f"Indexed {len(result['sources'])} items from duty loot tables -> {args.out}")
+    print(f"Indexed {len(result['sources'])} items from duty loot tables and {len(unobtainable)} unavailable item IDs -> {args.out}")
 
 
 if __name__ == "__main__":
