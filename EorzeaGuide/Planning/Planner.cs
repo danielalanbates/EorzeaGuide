@@ -196,7 +196,7 @@ public sealed class Planner
         if (zone != null) AddZoneCollectibles(list, zone, includeHunts: false);
     }
 
-    private bool SweepKind(QuestInfo q) => q.Kind switch
+    private bool SweepKind(QuestInfo q) => !q.Repeatable && (q.Kind switch
     {
         QuestKind.Side => Cfg.SweepSideQuests,
         QuestKind.Feature => true,
@@ -205,7 +205,7 @@ public sealed class Planner
         QuestKind.Repeatable => false,
         QuestKind.Seasonal => false,
         _ => Cfg.SweepSideQuests,
-    };
+    });
 
     private void PlanZone(List<Objective> list, uint territory, bool includeHunts)
     {
@@ -213,7 +213,7 @@ public sealed class Planner
         foreach (var id in zone.Quests)
         {
             var q = Db.Quests[id];
-            if (q.Kind is QuestKind.Repeatable or QuestKind.Seasonal) continue;
+            if (q.Repeatable || q.Kind is QuestKind.Repeatable or QuestKind.Seasonal) continue;
             if (Progress.QuestDone(id)) continue;
             if (!Progress.QuestAccepted(id) && !Progress.Available(q, Cfg.ZoneIgnoresLevel)) continue;
             if (QuestObjective(q) is { } o) list.Add(o);

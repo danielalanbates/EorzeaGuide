@@ -63,10 +63,11 @@ static class Program {
     {
       var hit = db.Zones.Values.SelectMany(z => z.Aetherytes).Where(x => x.Id == id).ToList();
       if (hit.Count == 0) { missing++; continue; }
-      var d = System.Numerics.Vector3.Distance(hit[0].Where.Pos, new System.Numerics.Vector3(r[0], r[1], r[2]));
+      // MapMarker has X/Z but no height; the plugin snaps Y to the floor at runtime.
+      var d = MapMath.Flat(hit[0].Where.Pos, new System.Numerics.Vector3(r[0], r[1], r[2]));
       if (d < 15) ok++; else { bad++; if (bad <= 5) Console.WriteLine($"  aetheryte {id} {hit[0].Name}: ours {hit[0].Where.Pos} vs ref ({r[0]},{r[1]},{r[2]}) = {d:0}y off"); }
     }
-    Console.WriteLine($"aetheryte positions vs reference: {ok} within 15y, {bad} off, {missing} not in our zones (city aethernet shards etc.)");
+    Console.WriteLine($"aetheryte horizontal positions vs reference: {ok} within 15y, {bad} off, {missing} not in our zones (city aethernet shards etc.)");
     sw.Restart(); db.BuildGear();
     Console.WriteLine($"gear {db.Gear!.Count} items in {sw.ElapsedMilliseconds}ms; with a known source {db.Gear.Count(g => !g.Sources[0].StartsWith("Duty drop"))}; with vendor location {db.Gear.Count(g => g.SourcePoints.Count > 0)}");
     var g0 = db.Gear.First(g => g.Name == "Weathered Shortsword");

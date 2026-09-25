@@ -21,7 +21,7 @@ it points.
 | Every achievement | Achievement sheet | All listed with live completion; quest-based ones are guidable |
 | Hunts | MobHuntOrder sheets + HuntHelper spawn points | Every bill target with kills; S/A/B spawn-point sweep per zone; exact bill-mob spots learned the first time you see one |
 | Duties ("missions") | ContentFinderCondition | Every duty, cleared or not, and the quest that unlocks it |
-| Every piece of equipment | Item + GilShop/SpecialShop/Recipe/quest/achievement rewards | Around 26,000 items with how to get each one, vendor location, and whether you own it |
+| Every piece of equipment | Item + GilShop/SpecialShop/Recipe/quest/achievement rewards | 29,057 items listed; about 18,300 have a known acquisition source in the plugin. Duty drops and other sources still need mapping |
 
 ## The arrow and the road
 
@@ -53,10 +53,9 @@ Commands: `/eguide` (dashboard), `/eguide step` (toggle the step box), `/eguide 
 ## Install (personal dev plugin, XIV on Mac)
 
 1. XIV on Mac → Settings → enable **Dalamud**. Launch the game once.
-2. Build (below) or copy the release zip's contents to
-   `~/Library/Application Support/EorzeaGuide/`.
+2. Build (below) or unpack a tested release zip under `~/Downloads/EorzeaGuide-plugin/`.
 3. In game: `/xlsettings` → Experimental → Dev Plugin Locations → add
-   `Z:\Users\daniel\Library\Application Support\EorzeaGuide\EorzeaGuide.dll` → Save.
+   the `EorzeaGuide.dll` in that folder using its Wine `Z:` path → Save.
 4. `/xlplugins` → Dev Tools → Installed Dev Plugins → enable **EorzeaGuide**.
 5. Recommended: install **vnavmesh** (from its custom repo) for obstacle-aware roads.
 6. The first run downloads the quest paths (about 2 MB). Settings → *Download / update quest
@@ -65,7 +64,7 @@ Commands: `/eguide` (dashboard), `/eguide step` (toggle the step box), `/eguide 
 ## Build
 
 ```sh
-cp -R "$HOME/Library/CloudStorage/GoogleDrive-danielalanbates@gmail.com/My Drive/Code/EorzeaGuide" ~/Downloads/EorzeaGuide-build   # build outside cloud folders
+cp -R "<your Google Drive Code folder>/EorzeaGuide" ~/Downloads/EorzeaGuide-build
 cd ~/Downloads/EorzeaGuide-build/EorzeaGuide
 ~/.dotnet/dotnet build -c Release
 ```

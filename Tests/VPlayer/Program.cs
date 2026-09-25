@@ -174,8 +174,20 @@ static class Program
     {
         var r = NewRun(db, dm, job);
         r.H.Config.Mode = GuideMode.Leveling;
-        // Start where the first available MSQ quest is given.
-        var first = db.MainScenario.First(q => Progress.Available(q, true) && q.Start.IsValid);
+        // The city arrival quest is classified as Side in the game sheets, but is
+        // already completed by the time the first MSQ (Close to Home) is offered.
+        // Seed the city that a fresh character of this starting class belongs to.
+        var city = job switch
+        {
+            3 or 26 => "Coming to Limsa Lominsa", // Marauder, Arcanist
+            4 or 5 or 6 => "Coming to Gridania",   // Lancer, Archer, Conjurer
+            1 or 2 or 7 => "Coming to Ul'dah",      // Gladiator, Pugilist, Thaumaturge
+            _ => throw new ArgumentException($"Job {job} is not a starting class; use a starting class for a fresh-character simulation")
+        };
+        var arrival = db.Quests.Values.Single(q => q.Name == city);
+        r.S.Done.Add(arrival.RowId);
+        var first = db.MainScenario.FirstOrDefault(q => Progress.Available(q, true) && q.Start.IsValid)
+            ?? throw new InvalidOperationException($"No first MSQ available for job {job} after {city}");
         r.Terr = first.Start.Territory; r.Pos = first.Start.Pos;
         var seen = new Dictionary<string, int>();
         var sw = System.Diagnostics.Stopwatch.StartNew();
@@ -184,17 +196,19 @@ static class Program
             if (cur != null) Stuck(r, seen, cur);
 
         var msqDone = db.MainScenario.Count(q => r.S.Done.Contains(q.RowId));
-        var reachable = db.MainScenario.Count(q => JobCategories.Contains(dm, new(), q.ClassJobCategory, job) && (q.GrandCompany == 0 || q.GrandCompany == r.S.Gc));
-        var line = $"LEVELING job={job}: MSQ {msqDone}/{reachable} for this job ({db.MainScenario.Count} incl. other start cities/GCs); " +
+        // The other two starting cities and two Grand Companies have exclusive MSQ
+        // branches. Only an uncompleted quest available in this final state is a
+        // genuine miss; counting every branch as reachable reports false failures.
+        var missed = db.MainScenario.Where(q => !r.S.Done.Contains(q.RowId) && Progress.Available(q, true))
+                                    .Select(q => $"MISSED\t{q.RowId}\t{q.Name}\tlv{q.Level}\tstart={q.Start.Territory}\tprereqs={string.Join(",", q.Prereqs)}").ToList();
+        var line = $"LEVELING job={job}: MSQ completed {msqDone}/{db.MainScenario.Count} across all branches; available MSQ left {missed.Count}; " +
                    $"quests done {r.S.Done.Count}; actions {r.Actions}; teleports {r.Teleports}; walked {r.Walked / 1000:0.0}k yalms; " +
                    $"aetherytes {r.S.Aetherytes.Count}; vistas {r.S.Vistas.Count}; currents {r.S.Currents.Count}; " +
                    $"steps with no location {r.UnmappedSteps}; stalls {r.Stalls}; level jumps {r.LevelJumps}; {sw.ElapsedMilliseconds}ms";
         Console.WriteLine(line);
         File.WriteAllLines(Path.Combine(outDir, $"vplayer_leveling_job{job}.tsv"), r.Log.Prepend(line));
-        var missed = db.MainScenario.Where(q => !r.S.Done.Contains(q.RowId) && JobCategories.Contains(dm, new(), q.ClassJobCategory, job) && (q.GrandCompany == 0 || q.GrandCompany == r.S.Gc))
-                                    .Select(q => $"MISSED\t{q.RowId}\t{q.Name}\tlv{q.Level}\tstart={q.Start.Territory}\tprereqs={string.Join(",", q.Prereqs)}").ToList();
         File.AppendAllLines(Path.Combine(outDir, $"vplayer_leveling_job{job}.tsv"), missed);
-        Console.WriteLine($"  MSQ quests never reached: {missed.Count} (first: {missed.FirstOrDefault()})");
+        Console.WriteLine($"  MSQ quests still available: {missed.Count} (first: {missed.FirstOrDefault()})");
         return r.Stalls > 0 || missed.Count > 0 ? 1 : 0;
     }
 

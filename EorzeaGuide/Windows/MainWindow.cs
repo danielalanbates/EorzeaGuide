@@ -20,7 +20,6 @@ public sealed class MainWindow : Window
     private string gearSlot = "All";
     private int gearMinIlvl, gearMaxIlvl = 999;
     private bool gearMyJob = true;
-    private string achCategory = "";
 
     // Completion snapshots (rebuilt on Refresh so the UI never scans 40k rows per frame)
     private Dictionary<uint, bool> questDone = new();

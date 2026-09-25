@@ -49,21 +49,33 @@ Tests/DbTest         offline: full GameDb build against real sqpack via Lumina (
 
 | Item | Status | Evidence |
 |---|---|---|
-| Plugin compiles (net10.0-windows, Dalamud API 13, Dalamud 15.0.3.5 refs) | ✅ | `dotnet build` 0 errors, 0 warnings |
+| Plugin compiles (net10.0-windows, Dalamud API 13, Dalamud 15.0.3.5 refs) | ✅ | `dotnet build -c Release` 0 errors, 0 warnings on 2026-09-25 |
 | Questionable parser | ✅ | PathsTest: 4,327 quests, 29,759 steps (27,807 with positions), 0.4 s |
-| GameDb build on real game files | see below | DbTest output |
+| GameDb build on real game files | ✅ | DbTest: 5,373 quests, 300 zones, 4,003 achievements, 1,272 hunt targets, 774 duties; 4,325/4,325 quest givers within 10y; 106/106 available aetheryte X/Z positions within 15y |
 | Library (SQLite + zone/MSQ docs + CSVs) | ✅ | `tools/verify_library.py`: 8/8 checks pass (docs/LIBRARY.md) |
 | Aetheryte positions | ✅ fixed | Were read from Aetheryte.Level (rows not in the Level sheet); now MapMarker, 197/197 within 15y |
-| Virtual player (Tests/VPlayer) | built, not yet run on current data | needs a fully patched client (DbTest/VPlayer read sqpack) |
+| Virtual player (Tests/VPlayer) | ✅ offline run | Starting classes 26 (Limsa), 1 (Ul'dah), and 4 (Gridania): 996/998/997 MSQ completed respectively, 0 available MSQ left, 0 stalls each. Zone run: 143 zones, 0 objectives left, 0 stalls. See limitations below |
 | Runs in game | ❌ NOT YET VERIFIED | Dalamud has never been enabled in XIV on Mac on this Mac; the client was still downloading on 2026-09-25 |
 
 2026-09-25 follow-up: the ground road now draws only for a successful vnavmesh path.
 The direct-bearing arrow remains available when vnavmesh has no path. The zone objective
 order still uses straight-line distances and is not a proven shortest walkable tour.
 
+2026-09-25 simulation follow-up: `Planner` now excludes quests marked repeatable from
+leveling and zone sweeps even when the game's category is Feature. The virtual player seeds
+the correct city-arrival quest for a starting class; those quests are classified Side in
+the game data and gate the first MSQ. Its missed-MSQ check excludes mutually exclusive
+starting-city and Grand Company branches. DbTest compares map-marker aetherytes by X/Z
+because their height is unavailable until runtime floor snapping.
+
+The virtual player simulates quest acceptance/completion and collectible progress; it does
+not test combat, duty clears, weather/time windows, navmesh obstacles, arrow orientation,
+cross-zone travel, or the live game's UI and API behavior. Its zero-stall result is an
+offline planner result, not an in-game completion guarantee.
+
 ## Known gaps and next steps (in priority order)
-0. **Run Tests/VPlayer** once the client is fully patched:
-   `dotnet run -c Release -- <sqpack> questionable.tgz ./plugindir ./out 26 all` and fix every STALL/MISSED line.
+0. **Expand virtual-player scenarios** to all starting classes and Grand Companies, plus
+   hunt, duty, achievement, and gear guidance. One class from each starting city is clean.
 1. **First in-game run.** Enable Dalamud, add the dev plugin, and check each piece in turn:
    the step window appears; `/eguide quests` prints ids; the arrow points the right way when
    the camera rotates; the road follows vnavmesh; the map flag lands on the objective.
