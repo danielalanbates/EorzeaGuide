@@ -22,6 +22,7 @@ public sealed class QuestStep
     public float Radius = 3f;
     public uint DataId;             // ENpc/EObj/BNpc id the step targets
     public uint AetherCurrentId;
+    public uint ContentFinderConditionId;
     public bool Fly;
     public bool FromQuestionable;   // true = hand-mapped path, false = game-data fallback
 }

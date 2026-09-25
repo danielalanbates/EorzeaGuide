@@ -68,6 +68,14 @@ static class Program
         Console.WriteLine("GameDb: " + db.Status);
         if (!db.Ready) return 2;
 
+        // A duty step without a world position must remain a duty instruction;
+        // pointing at the quest turn-in before the clear would be misleading.
+        var dutyCheck = NewRun(db, dm, job);
+        dutyCheck.S.Accepted[70336] = 2; // Gentlemen at Heart, CFC 944
+        var dutyObjective = dutyCheck.P.QuestObjective(db.Quests[70336]);
+        if (dutyObjective == null || dutyObjective.Where.IsValid || !dutyObjective.Title.Contains("Clear"))
+            throw new InvalidOperationException("Unlocated duty step was not shown as a duty instruction");
+
         var fails = 0;
         if (mode is "all" or "leveling") fails += RunLeveling(db, dm, job, outDir);
         if (mode is "all" or "zones") fails += RunZones(db, dm, outDir);

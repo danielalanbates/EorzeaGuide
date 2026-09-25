@@ -84,6 +84,9 @@ was unsupported for many items. The missing-source count is still about 10,700 i
 The Duties tab now offers a quest guide for 243 duties with a Questionable duty step,
 including paths fetched after the database first loads. It labels those as related quests
 and continues to label only game-sheet `InstanceContentUnlock` links as unlock quests.
+For a duty step with no world position, the planner shows an explicit clear-the-duty
+instruction and no waypoint; it no longer jumps to the turn-in position before the clear.
+The virtual player checks this against Gentlemen at Heart (CFC 944) before its route run.
 
 ## Known gaps and next steps (in priority order)
 0. **Expand virtual-player scenarios** to all starting classes and Grand Companies, plus

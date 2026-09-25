@@ -278,6 +278,7 @@ public sealed class GameDb
             steps.Add(new QuestStep
             {
                 Sequence = s.Seq, Action = s.Action, Where = where, DataId = s.DataId, AetherCurrentId = s.AetherCurrentId,
+                ContentFinderConditionId = s.ContentFinderConditionId,
                 Fly = s.Fly, Radius = s.Stop > 0 ? s.Stop : 3f, FromQuestionable = true,
                 Text = Describe(s),
             });

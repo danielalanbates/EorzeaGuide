@@ -330,6 +330,21 @@ public sealed class Planner
         {
             var seq = Progress.QuestSequence(q.RowId);
             var steps = q.Steps.Where(s => s.Sequence == seq && s.Where.IsValid).ToList();
+            if (steps.Count == 0)
+            {
+                var dutyStep = q.Steps.FirstOrDefault(s => s.Sequence == seq && s.Action is ("Duty" or "SinglePlayerDuty"));
+                if (dutyStep != null)
+                {
+                    var dutyName = Db.Duties.FirstOrDefault(d => d.CfcId == dutyStep.ContentFinderConditionId)?.Name;
+                    return new Objective
+                    {
+                        Kind = ObjKind.Quest, QuestId = q.RowId,
+                        Title = $"{q.Name}: {(dutyName == null ? dutyStep.Text : $"Clear {dutyName}")}",
+                        Detail = "Enter and clear the duty through Duty Finder or the quest prompt. The guide has no safe map waypoint for this step.",
+                        Key = $"q{q.RowId}-{seq}-duty",
+                    };
+                }
+            }
             if (steps.Count == 0) steps = q.Steps.Where(s => s.Sequence == 255 && s.Where.IsValid).ToList();
             var idx = stepCursor.TryGetValue(q.RowId, out var c) && c.Seq == seq ? c.Step : 0;
             if (steps.Count == 0)
