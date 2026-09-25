@@ -82,7 +82,7 @@ public sealed class Planner
         if ((plugin.Now - nearSince).TotalSeconds < 2 || !Progress.QuestAccepted(cur.QuestId)) return;
         var seq = Progress.QuestSequence(cur.QuestId);
         var q = Db.Quests[cur.QuestId];
-        var inSeq = q.Steps.Count(s => s.Sequence == seq && s.Where.IsValid);
+        var inSeq = q.Steps.Count(s => s.Sequence == seq && Actionable(s));
         var idx = stepCursor.TryGetValue(cur.QuestId, out var c) && c.Seq == seq ? c.Step : 0;
         if (idx + 1 < inSeq) { stepCursor[cur.QuestId] = (seq, idx + 1); nearSince = DateTime.MaxValue; ForceReplan(); }
     }
@@ -324,32 +324,30 @@ public sealed class Planner
     }
 
     /// Where to go next for a quest: its current step if accepted, otherwise the quest giver.
+    private static bool Actionable(QuestStep step) => step.Where.IsValid || step.Action is "Duty" or "SinglePlayerDuty";
+
     public Objective? QuestObjective(QuestInfo q)
     {
         if (Progress.QuestAccepted(q.RowId))
         {
             var seq = Progress.QuestSequence(q.RowId);
-            var steps = q.Steps.Where(s => s.Sequence == seq && s.Where.IsValid).ToList();
-            if (steps.Count == 0)
-            {
-                var dutyStep = q.Steps.FirstOrDefault(s => s.Sequence == seq && s.Action is ("Duty" or "SinglePlayerDuty"));
-                if (dutyStep != null)
-                {
-                    var dutyName = Db.Duties.FirstOrDefault(d => d.CfcId == dutyStep.ContentFinderConditionId)?.Name;
-                    return new Objective
-                    {
-                        Kind = ObjKind.Quest, QuestId = q.RowId,
-                        Title = $"{q.Name}: {(dutyName == null ? dutyStep.Text : $"Clear {dutyName}")}",
-                        Detail = "Enter and clear the duty through Duty Finder or the quest prompt. The guide has no safe map waypoint for this step.",
-                        Key = $"q{q.RowId}-{seq}-duty",
-                    };
-                }
-            }
+            var steps = q.Steps.Where(s => s.Sequence == seq && Actionable(s)).ToList();
             if (steps.Count == 0) steps = q.Steps.Where(s => s.Sequence == 255 && s.Where.IsValid).ToList();
             var idx = stepCursor.TryGetValue(q.RowId, out var c) && c.Seq == seq ? c.Step : 0;
             if (steps.Count == 0)
                 return new Objective { Kind = ObjKind.Quest, QuestId = q.RowId, Title = q.Name, Detail = "No mapped location for this step - follow the quest's own map marker.", Key = $"q{q.RowId}-{seq}" };
             var st = steps[Math.Min(idx, steps.Count - 1)];
+            if (!st.Where.IsValid && st.Action is ("Duty" or "SinglePlayerDuty"))
+            {
+                var dutyName = Db.Duties.FirstOrDefault(d => d.CfcId == st.ContentFinderConditionId)?.Name;
+                return new Objective
+                {
+                    Kind = ObjKind.Quest, QuestId = q.RowId,
+                    Title = $"{q.Name}: {(dutyName == null ? st.Text : $"Clear {dutyName}")}",
+                    Detail = "Enter and clear the duty through Duty Finder or the quest prompt. The guide has no safe map waypoint for this step.",
+                    Key = $"q{q.RowId}-{seq}-{idx}",
+                };
+            }
             return new Objective
             {
                 Kind = ObjKind.Quest, QuestId = q.RowId, Title = $"{q.Name}: {st.Text}",

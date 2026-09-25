@@ -96,6 +96,8 @@ and continues to label only game-sheet `InstanceContentUnlock` links as unlock q
 For a duty step with no world position, the planner shows an explicit clear-the-duty
 instruction and no waypoint; it no longer jumps to the turn-in position before the clear.
 The virtual player checks this against Gentlemen at Heart (CFC 944) before its route run.
+It also checks It's Probably Pirates, where a positioned travel step and unlocated duty
+step share sequence 4: the cursor now shows the duty after arriving at the travel point.
 
 ## Known gaps and next steps (in priority order)
 0. **Expand virtual-player scenarios** to all starting classes and Grand Companies, plus

@@ -75,6 +75,21 @@ static class Program
         var dutyObjective = dutyCheck.P.QuestObjective(db.Quests[70336]);
         if (dutyObjective == null || dutyObjective.Where.IsValid || !dutyObjective.Title.Contains("Clear"))
             throw new InvalidOperationException("Unlocated duty step was not shown as a duty instruction");
+        var mixedCheck = NewRun(db, dm, job);
+        mixedCheck.S.Accepted[65781] = 4; // It's Probably Pirates: travel step, then duty
+        mixedCheck.H.Config.Mode = GuideMode.Quest;
+        mixedCheck.H.Config.FocusQuest = 65781;
+        var travelStep = db.Quests[65781].Steps.First(s => s.Sequence == 4 && s.Where.IsValid);
+        mixedCheck.Terr = travelStep.Where.Territory;
+        mixedCheck.Pos = travelStep.Where.Pos;
+        for (var i = 0; i < 3; i++)
+        {
+            mixedCheck.H.Clock = mixedCheck.H.Clock.AddSeconds(3);
+            mixedCheck.P.Tick(mixedCheck.Pos, mixedCheck.Terr);
+        }
+        var afterTravel = mixedCheck.P.QuestObjective(db.Quests[65781]);
+        if (afterTravel == null || afterTravel.Where.IsValid || !afterTravel.Title.Contains("Clear"))
+            throw new InvalidOperationException("Duty step after a positioned step was skipped");
 
         var fails = 0;
         if (mode is "all" or "leveling") fails += RunLeveling(db, dm, job, outDir);
@@ -147,9 +162,9 @@ static class Program
         }
         var seq = s.Accepted[q.RowId];
         if (!cur.Where.IsValid) r.UnmappedSteps++;
-        var here = q.Steps.Where(x => x.Sequence == seq && x.Where.IsValid).ToList();
+        var here = q.Steps.Where(x => x.Sequence == seq && (x.Where.IsValid || x.Action is ("Duty" or "SinglePlayerDuty"))).ToList();
         // Only the last mapped step of a sequence changes the server-side sequence.
-        var atLast = here.Count <= 1 || !cur.Where.IsValid ||
+        var atLast = here.Count <= 1 ||
                      (int.TryParse(cur.Key[(cur.Key.LastIndexOf('-') + 1)..], out var k) && k >= here.Count - 1);
         if (!atLast) return;
         if (seq == 255) { s.Accepted.Remove(q.RowId); s.Done.Add(q.RowId); return; }
