@@ -22,13 +22,16 @@ public sealed class Objective
     public float Radius = 4f;
     public string Key = "";
     public uint TravelAetheryte;
+    public string TravelAetheryteName = "";
+    public float EtaSeconds;
+    public uint DataId;                 // ENpc/EObj the step targets, for the over-head beacon
 }
 
 /// The Zygor brain: turns the character's state plus a mode into an ordered queue of
 /// objectives. Current = Queue[0]; the overlay draws the road to it.
 public sealed class Planner
 {
-    private readonly Plugin plugin;
+    private readonly IPlannerHost plugin;
     public List<Objective> Queue { get; private set; } = new();
     public Objective? Current => Queue.Count > 0 ? Queue[0] : null;
     public string Headline { get; private set; } = "";
@@ -38,7 +41,7 @@ public sealed class Planner
     private DateTime nearSince = DateTime.MaxValue;
     private string nearKey = "";
 
-    public Planner(Plugin plugin) => this.plugin = plugin;
+    public Planner(IPlannerHost host) => plugin = host;
 
     private Configuration Cfg => plugin.Config;
     private GameDb Db => plugin.Db;
@@ -62,10 +65,10 @@ public sealed class Planner
     {
         if (!Db.Ready) return;
         AutoAdvanceSteps(player, territory);
-        if ((DateTime.UtcNow - lastPlan).TotalSeconds < 2) return;
-        lastPlan = DateTime.UtcNow;
+        if ((plugin.Now - lastPlan).TotalSeconds < 2) return;
+        lastPlan = plugin.Now;
         try { Queue = Plan(player, territory); }
-        catch (Exception ex) { Plugin.Log.Error(ex, "plan failed"); }
+        catch (Exception ex) { plugin.LogError(ex, "plan failed"); }
     }
 
     /// Steps inside one quest sequence advance when you stand at them for 2 seconds.
@@ -75,8 +78,8 @@ public sealed class Planner
         if (cur == null || cur.Kind != ObjKind.Quest || !cur.Where.IsValid || cur.Where.Territory != territory) { nearSince = DateTime.MaxValue; return; }
         var close = MapMath.Flat(player, cur.Where.Pos) <= Math.Max(cur.Radius, 3f) + 1.5f;
         if (!close) { nearSince = DateTime.MaxValue; return; }
-        if (nearKey != cur.Key) { nearKey = cur.Key; nearSince = DateTime.UtcNow; return; }
-        if ((DateTime.UtcNow - nearSince).TotalSeconds < 2 || !Progress.QuestAccepted(cur.QuestId)) return;
+        if (nearKey != cur.Key) { nearKey = cur.Key; nearSince = plugin.Now; return; }
+        if ((plugin.Now - nearSince).TotalSeconds < 2 || !Progress.QuestAccepted(cur.QuestId)) return;
         var seq = Progress.QuestSequence(cur.QuestId);
         var q = Db.Quests[cur.QuestId];
         var inSeq = q.Steps.Count(s => s.Sequence == seq && s.Where.IsValid);
@@ -113,17 +116,22 @@ public sealed class Planner
             var order = RouteOptimizer.Order(player, here.Select(o => o.Where.Pos).ToList());
             ordered = order.Select(i => here[i]).ToList();
         }
-        foreach (var o in rest)
+        ordered.AddRange(rest);
+        foreach (var o in ordered.Take(1))
         {
+            if (!o.Where.IsValid) continue;
+            var plan = TravelRouter.Choose(Db, territory, player, o.Where);
+            o.EtaSeconds = plan.Seconds;
+            if (plan.Teleport) { o.TravelAetheryte = plan.Aetheryte; o.TravelAetheryteName = plan.AetheryteName; }
+        }
+        foreach (var o in rest)
             if (o.Where.IsValid && o.Where.Territory != territory)
             {
-                var ae = NearestAetheryte(o.Where);
-                o.TravelAetheryte = ae.Id;
-                o.Detail = $"In {Db.ZoneName(o.Where.Territory)}" + (ae.Id != 0 ? $" - teleport to {ae.Name}" : "") +
+                var ae = o.TravelAetheryte != 0 ? (o.TravelAetheryte, o.TravelAetheryteName) : NearestAetheryte(o.Where);
+                o.TravelAetheryte = ae.Item1; o.TravelAetheryteName = ae.Item2;
+                o.Detail = $"In {Db.ZoneName(o.Where.Territory)}" + (ae.Item1 != 0 ? $" - teleport to {ae.Item2}" : " - no attuned aetheryte there yet") +
                            (o.Detail.Length > 0 ? ". " + o.Detail : "");
             }
-            ordered.Add(o);
-        }
         Headline = Cfg.Mode switch
         {
             GuideMode.Leveling => $"Leveling guide - {here.Count} objectives in this zone",
@@ -153,20 +161,16 @@ public sealed class Planner
 
     // ---------- modes ----------
 
-    private unsafe void PlanLeveling(List<Objective> list, uint territory)
+    private void PlanLeveling(List<Objective> list, uint territory)
     {
         // 1. Everything already in the journal.
-        var qm = FFXIVClientStructs.FFXIV.Client.Game.QuestManager.Instance();
         var accepted = new HashSet<uint>();
-        if (qm != null)
-            foreach (ref readonly var w in qm->NormalQuests)
-            {
-                if (w.QuestId == 0) continue;
-                var id = w.QuestId + 65536u;
-                if (!Db.Quests.TryGetValue(id, out var q) || w.IsHidden) continue;
-                accepted.Add(id);
-                if (QuestObjective(q) is { } o) list.Add(o);
-            }
+        foreach (var id in Progress.State.AcceptedQuests())
+        {
+            if (!Db.Quests.TryGetValue(id, out var q)) continue;
+            accepted.Add(id);
+            if (QuestObjective(q) is { } o) list.Add(o);
+        }
 
         // 2. Next main scenario quest.
         var msq = Db.MainScenario.FirstOrDefault(q => !Progress.QuestDone(q.RowId) && !accepted.Contains(q.RowId) && Progress.Available(q, true));
@@ -309,12 +313,12 @@ public sealed class Planner
     private Objective HuntObjective(HuntTarget h)
     {
         var kills = Progress.HuntKills(h.MarkIndex, h.MobIndex);
-        var where = plugin.Learned.Get(h.NameId) ?? default;
+        var where = plugin.LearnedPosition(h.NameId) ?? default;
         if (!where.IsValid && Db.Zones.TryGetValue(h.Territory, out var z) && z.Aetherytes.Count > 0) where = z.Aetherytes[0].Where;
         return new Objective
         {
             Kind = ObjKind.HuntMark, Title = $"Hunt {h.Name} ({kills}/{h.NeededKills})",
-            Detail = $"{h.BillName} - {h.Zone}" + (plugin.Learned.Get(h.NameId) == null ? " (exact spot learned once you see one)" : ""),
+            Detail = $"{h.BillName} - {h.Zone}" + (plugin.LearnedPosition(h.NameId) == null ? " (exact spot learned once you see one)" : ""),
             Where = where, Id = h.NameId, Radius = 15, Key = $"hm{h.MarkIndex}-{h.OrderRow}-{h.MobIndex}",
         };
     }
@@ -335,7 +339,7 @@ public sealed class Planner
             {
                 Kind = ObjKind.Quest, QuestId = q.RowId, Title = $"{q.Name}: {st.Text}",
                 Detail = (st.FromQuestionable ? "" : "approximate area from game data. ") + (steps.Count > 1 ? $"step {Math.Min(idx, steps.Count - 1) + 1}/{steps.Count} of this part" : ""),
-                Where = st.Where, Fly = st.Fly, Radius = st.Radius, Key = $"q{q.RowId}-{seq}-{idx}",
+                Where = st.Where, Fly = st.Fly, Radius = st.Radius, DataId = st.DataId, Key = $"q{q.RowId}-{seq}-{idx}",
             };
         }
         if (!q.Start.IsValid) return null;
@@ -343,7 +347,7 @@ public sealed class Planner
         {
             Kind = ObjKind.Quest, QuestId = q.RowId,
             Title = $"Pick up {q.Name}" + (q.StartNpc.Length > 0 ? $" from {q.StartNpc}" : ""),
-            Detail = $"Lv {q.Level} {q.Kind}", Where = q.Start, Radius = 4, Key = $"q{q.RowId}-start",
+            Detail = $"Lv {q.Level} {q.Kind}", Where = q.Start, Radius = 4, DataId = q.StartNpcId, Key = $"q{q.RowId}-start",
         };
     }
 }

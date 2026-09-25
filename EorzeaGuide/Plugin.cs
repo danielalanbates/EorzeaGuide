@@ -13,7 +13,7 @@ using EorzeaGuide.Windows;
 
 namespace EorzeaGuide;
 
-public sealed class Plugin : IDalamudPlugin
+public sealed class Plugin : IDalamudPlugin, IPlannerHost
 {
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
@@ -24,6 +24,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
+    [PluginService] internal static ITargetManager Targets { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
 
     public Configuration Config { get; }
@@ -46,6 +47,7 @@ public sealed class Plugin : IDalamudPlugin
     {
         pluginInterface.Inject(this);
         Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Progress.State = new LiveGameState();
         var cfgDir = PluginInterface.GetPluginConfigDirectory();
         Directory.CreateDirectory(cfgDir);
 
@@ -89,6 +91,9 @@ public sealed class Plugin : IDalamudPlugin
     }
 
     public void SaveConfig() => PluginInterface.SavePluginConfig(Config);
+    public DateTime Now => DateTime.UtcNow;
+    public WorldPoint? LearnedPosition(uint bnpcNameId) => Learned.Get(bnpcNameId);
+    public void LogError(Exception ex, string message) => Log.Error(ex, message);
     public void OpenMain() => mainWindow.IsOpen = true;
     public void SetStepWindow(bool open) { stepWindow.IsOpen = open; Config.ShowStepWindow = open; SaveConfig(); }
 
@@ -115,7 +120,8 @@ public sealed class Plugin : IDalamudPlugin
             Learned.Scan(terr, ClientState.MapId);
 
             var cur = Planner.Current;
-            if (cur != null && cur.Where.IsValid && cur.Where.Territory == terr) Nav.Update(me.Position, cur.Where.Pos, cur.Fly);
+            LiveTarget = cur != null && cur.DataId != 0 && cur.Where.Territory == terr ? FindObject(cur.DataId, me.Position) : null;
+            if (cur != null && cur.Where.IsValid && cur.Where.Territory == terr) Nav.Update(me.Position, LiveTarget?.Position ?? cur.Where.Pos, cur.Fly);
             else Nav.Clear();
 
             if (cur != null && Config.AutoFlagMap && cur.Key != lastFlagKey && cur.Where.IsValid)
@@ -127,6 +133,25 @@ public sealed class Plugin : IDalamudPlugin
         }
         catch (Exception ex) { Log.Error(ex, "tick failed"); }
     }
+
+    /// The step's NPC/object if it is loaded near you: gives an exact, live target position.
+    public Dalamud.Game.ClientState.Objects.Types.IGameObject? LiveTarget { get; private set; }
+
+    private static Dalamud.Game.ClientState.Objects.Types.IGameObject? FindObject(uint dataId, System.Numerics.Vector3 near)
+    {
+        Dalamud.Game.ClientState.Objects.Types.IGameObject? best = null;
+        var bd = float.MaxValue;
+        foreach (var o in Objects)
+        {
+            if (o.BaseId != dataId) continue;
+            var d = System.Numerics.Vector3.DistanceSquared(o.Position, near);
+            if (d < bd) { bd = d; best = o; }
+        }
+        return best;
+    }
+
+    /// Selecting a target is a normal UI action; only ever done when the player clicks the button.
+    public void TargetLive() { if (LiveTarget != null) Targets.Target = LiveTarget; }
 
     public unsafe void FlagMap(WorldPoint p)
     {

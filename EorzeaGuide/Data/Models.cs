@@ -43,6 +43,7 @@ public sealed class QuestInfo
     public uint BeastTribe;
     public WorldPoint Start;
     public string StartNpc = "";
+    public uint StartNpcId;
     public uint[] Prereqs = [];
     public bool PrereqAny;
     public uint[] Locks = [];

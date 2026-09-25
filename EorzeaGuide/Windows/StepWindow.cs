@@ -42,10 +42,15 @@ public sealed class StepWindow : Window
         ImGui.PopTextWrapPos();
 
         if (cur.Where.IsValid && ImGui.SmallButton("Map")) plugin.OpenMapAt(cur.Where);
-        if (cur.TravelAetheryte != 0 && cur.Where.Territory != Plugin.ClientState.TerritoryType)
+        if (cur.TravelAetheryte != 0)
         {
             ImGui.SameLine();
-            if (ImGui.SmallButton("Teleport")) plugin.Teleport(cur.TravelAetheryte);
+            if (ImGui.SmallButton($"Teleport: {cur.TravelAetheryteName}")) plugin.Teleport(cur.TravelAetheryte);
+        }
+        if (plugin.LiveTarget != null)
+        {
+            ImGui.SameLine();
+            if (ImGui.SmallButton("Target")) plugin.TargetLive();
         }
         ImGui.SameLine();
         if (ImGui.SmallButton("Skip")) pl.Skip(cur);

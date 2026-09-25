@@ -212,6 +212,7 @@ public sealed class GameDb
             if (issuer != null)
                 info.Start = new WorldPoint(issuer.Value.Territory.RowId, issuer.Value.Map.RowId,
                     new Vector3(issuer.Value.X, issuer.Value.Y, issuer.Value.Z));
+            info.StartNpcId = q.IssuerStart.RowId;
             if (NpcNames.TryGetValue(q.IssuerStart.RowId, out var npc)) info.StartNpc = npc;
 
             // Game-data fallback steps: each TodoParams entry is a sequence with 0..n locations.

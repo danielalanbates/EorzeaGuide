@@ -44,7 +44,23 @@ public sealed class Overlay
             }
         }
 
-        if (sameZone && cfg.DrawBeacon)
+        var live = plugin.LiveTarget;
+        if (live != null && cfg.DrawBeacon)
+        {
+            // Over-head marker on the actual NPC/object (CompletionRoute's Target Beacon).
+            var head = live.Position + new Vector3(0, 2.6f + live.HitboxRadius * 0.3f, 0);
+            if (Plugin.GameGui.WorldToScreen(head, out var hs))
+            {
+                var bob = (float)Math.Sin(ImGui.GetTime() * 4) * 4f;
+                var c = ImGui.GetColorU32(cfg.BeaconColor with { W = 1f });
+                var p = hs + new Vector2(0, bob);
+                dl.AddTriangleFilled(p + new Vector2(-12, -22), p + new Vector2(12, -22), p, c);
+                dl.AddTriangle(p + new Vector2(-12, -22), p + new Vector2(12, -22), p, ImGui.GetColorU32(new Vector4(0, 0, 0, 0.9f)), 2f);
+                var mark = obj.Title.StartsWith("Pick up") ? "!" : obj.Title.Contains("Turn in") ? "?" : "";
+                if (mark.Length > 0) dl.AddText(p + new Vector2(-3, -38), c, mark);
+            }
+        }
+        else if (sameZone && cfg.DrawBeacon)
         {
             var top = obj.Where.Pos + new Vector3(0, 12, 0);
             if (Plugin.GameGui.WorldToScreen(obj.Where.Pos, out var s0) && Plugin.GameGui.WorldToScreen(top, out var s1))
@@ -109,7 +125,7 @@ public sealed class Overlay
         dl.AddTriangleFilled(tip, notch, baseR, c);
         dl.AddTriangle(tip, baseL, baseR, ImGui.GetColorU32(new Vector4(0, 0, 0, 0.8f)), 2f);
 
-        label = arrived ? "Arrived" : $"{dist:0} yalms";
+        label = arrived ? "Arrived" : obj.TravelAetheryte != 0 ? $"{dist:0} yalms - faster: teleport to {obj.TravelAetheryteName}" : $"{dist:0} yalms (~{Math.Max(1, obj.EtaSeconds / 60):0} min)";
         var ts = ImGui.CalcTextSize(label);
         dl.AddText(center + new Vector2(-ts.X / 2, size + 6), col, label);
         var title = obj.Title.Length > 70 ? obj.Title[..70] + "..." : obj.Title;
