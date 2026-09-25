@@ -1,0 +1,11 @@
+{
+  "Author": "Daniel Bates",
+  "Name": "EorzeaGuide",
+  "InternalName": "EorzeaGuide",
+  "Punchline": "Zygor-style step-by-step guides and completionist tracking for FFXIV.",
+  "Description": "Personal-use guide engine: follow JSON step guides with auto-advance on quest accept/complete, one-click map flags, and a completionist dashboard grouped by expansion.",
+  "ApplicableVersion": "any",
+  "RepoUrl": "",
+  "Tags": ["guide", "quests", "completionist", "leveling"],
+  "DalamudApiLevel": 13
+}

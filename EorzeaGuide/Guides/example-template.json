@@ -1,0 +1,36 @@
+{
+  // Template guide. Copy this file, rename it, and fill in real ids.
+  // Get quest ids in-game with: /eguide quests
+  // TerritoryId/MapId: New Gridania = 132/2, Old Gridania = 133/3,
+  // Central Shroud = 148/4, Ul'dah Steps of Nald = 130/13, Limsa Lower Decks = 129/12.
+  "Title": "Example Guide (template)",
+  "Category": "Templates",
+  "Steps": [
+    {
+      "Text": "Travel to the quest giver. This is a Travel step: advance is manual, but the button flags the map.",
+      "Kind": "Travel",
+      "TerritoryId": 132,
+      "MapId": 2,
+      "X": 11.7,
+      "Y": 13.5
+    },
+    {
+      "Text": "Accept the quest from the NPC. This step auto-advances the moment the quest is in your journal.",
+      "Kind": "Accept",
+      "QuestId": 65575,
+      "TerritoryId": 132,
+      "MapId": 2,
+      "X": 11.7,
+      "Y": 13.5
+    },
+    {
+      "Text": "Do the objectives and turn in. This step auto-advances when the quest is flagged complete.",
+      "Kind": "Turnin",
+      "QuestId": 65575
+    },
+    {
+      "Text": "Notes look like this - reminders, gear checks, aetheryte attunement. Manual advance.",
+      "Kind": "Note"
+    }
+  ]
+}

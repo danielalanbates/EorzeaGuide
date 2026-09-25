@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <DalamudLibPath>$(HOME)/Library/Application Support/XIV on Mac/dalamud/Hooks/15.0.3.5/</DalamudLibPath></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../EorzeaGuide/Data/GameDb.cs;../../EorzeaGuide/Data/MapMath.cs;../../EorzeaGuide/Data/Models.cs;../../EorzeaGuide/Data/QuestPathStore.cs" />
+    <Reference Include="Lumina"><HintPath>$(DalamudLibPath)Lumina.dll</HintPath><Private>true</Private></Reference>
+    <Reference Include="Lumina.Excel"><HintPath>$(DalamudLibPath)Lumina.Excel.dll</HintPath><Private>true</Private></Reference>
+  </ItemGroup>
+</Project>

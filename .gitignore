@@ -1,0 +1,9 @@
+bin/
+obj/
+.DS_Store
+# Personal/runtime data never goes in the repo
+*.user
+learned-positions.json
+questpaths-index.json
+EorzeaGuide.json.local
+Tests/**/plugindir/
