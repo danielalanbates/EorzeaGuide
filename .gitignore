@@ -7,3 +7,6 @@ learned-positions.json
 questpaths-index.json
 EorzeaGuide.json.local
 Tests/**/plugindir/
+
+# Generated library (Square Enix + AGPL-derived data): lives in Drive, never in git
+library/

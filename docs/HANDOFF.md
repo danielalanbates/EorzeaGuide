@@ -52,9 +52,14 @@ Tests/DbTest         offline: full GameDb build against real sqpack via Lumina (
 | Plugin compiles (net10.0-windows, Dalamud API 13, Dalamud 15.0.3.5 refs) | ✅ | `dotnet build` 0 errors, 0 warnings |
 | Questionable parser | ✅ | PathsTest: 4,327 quests, 29,759 steps (27,807 with positions), 0.4 s |
 | GameDb build on real game files | see below | DbTest output |
+| Library (SQLite + zone/MSQ docs + CSVs) | ✅ | `tools/verify_library.py`: 8/8 checks pass (docs/LIBRARY.md) |
+| Aetheryte positions | ✅ fixed | Were read from Aetheryte.Level (rows not in the Level sheet); now MapMarker, 197/197 within 15y |
+| Virtual player (Tests/VPlayer) | built, not yet run on current data | needs a fully patched client (DbTest/VPlayer read sqpack) |
 | Runs in game | ❌ NOT YET VERIFIED | Dalamud has never been enabled in XIV on Mac on this Mac; the client was still downloading on 2026-09-25 |
 
 ## Known gaps and next steps (in priority order)
+0. **Run Tests/VPlayer** once the client is fully patched:
+   `dotnet run -c Release -- <sqpack> questionable.tgz ./plugindir ./out 26 all` and fix every STALL/MISSED line.
 1. **First in-game run.** Enable Dalamud, add the dev plugin, and check each piece in turn:
    the step window appears; `/eguide quests` prints ids; the arrow points the right way when
    the camera rotates; the road follows vnavmesh; the map flag lands on the objective.

@@ -121,7 +121,7 @@ public sealed class Plugin : IDalamudPlugin, IPlannerHost
 
             var cur = Planner.Current;
             LiveTarget = cur != null && cur.DataId != 0 && cur.Where.Territory == terr ? FindObject(cur.DataId, me.Position) : null;
-            if (cur != null && cur.Where.IsValid && cur.Where.Territory == terr) Nav.Update(me.Position, LiveTarget?.Position ?? cur.Where.Pos, cur.Fly);
+            if (cur != null && cur.Where.IsValid && cur.Where.Territory == terr) Nav.Update(me.Position, LiveTarget?.Position ?? Grounded(cur), cur.Fly);
             else Nav.Clear();
 
             if (cur != null && Config.AutoFlagMap && cur.Key != lastFlagKey && cur.Where.IsValid)
@@ -132,6 +132,19 @@ public sealed class Plugin : IDalamudPlugin, IPlannerHost
             LegacyTick();
         }
         catch (Exception ex) { Log.Error(ex, "tick failed"); }
+    }
+
+    private readonly Dictionary<string, System.Numerics.Vector3> grounded = new();
+
+    /// Aetheryte markers and hunt spawn points carry no height; snap them to the floor once via vnavmesh.
+    private System.Numerics.Vector3 Grounded(Objective o)
+    {
+        var p = o.Where.Pos;
+        if (p.Y != 0) return p;
+        if (grounded.TryGetValue(o.Key, out var g)) return g;
+        var s = Nav.SnapToFloor(p);
+        if (s != p) grounded[o.Key] = s;
+        return s;
     }
 
     /// The step's NPC/object if it is loaded near you: gives an exact, live target position.

@@ -43,7 +43,8 @@ public sealed class Navigator
 
     public Vector3 SnapToFloor(Vector3 p)
     {
-        try { return pointOnFloor.InvokeFunc(p with { Y = p.Y + 50 }, false, 5f) ?? p; }
+        // A zero height means "unknown" (map-marker sources); search down from high above instead.
+        try { return pointOnFloor.InvokeFunc(p with { Y = p.Y == 0 ? 1000f : p.Y + 50 }, false, 5f) ?? p; }
         catch { return p; }
     }
 

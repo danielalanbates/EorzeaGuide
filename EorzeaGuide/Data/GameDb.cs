@@ -117,17 +117,35 @@ public sealed class GameDb
             };
         }
 
-        // Aetherytes
+        // Aetherytes. Aetheryte.Level points at layout rows that aren't in the Level sheet, so positions come
+        // from each map's own marker list (Map.MapMarkerRange -> MapMarker; DataType 3 = aetheryte keyed by id,
+        // 4 = aethernet shard keyed by its PlaceName), in 2048-pixel map-texture coordinates. Verified against
+        // Questionable's measured positions: 197/197 within 15 yalms (tools/verify_library.py).
+        var markers = new Dictionary<(uint Range, byte Type, uint Key), (short X, short Y)>();
+        foreach (var coll in data.GetSubrowExcelSheet<MapMarker>())
+            foreach (var mk in coll)
+                if (mk.DataType is 3 or 4) markers.TryAdd((mk.RowId, mk.DataType, mk.DataKey.RowId), (mk.X, mk.Y));
+        var mapsByTerritory = data.GetExcelSheet<Map>().Where(m => m.TerritoryType.RowId != 0).GroupBy(m => m.TerritoryType.RowId)
+                                  .ToDictionary(g => g.Key, g => g.ToList());
         foreach (var a in data.GetExcelSheet<Aetheryte>())
         {
-            if (!a.IsAetheryte || a.Invisible) continue;
+            if (a.Invisible) continue;
             var terr = a.Territory.RowId;
             var name = a.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
-            AetheryteInfo[a.RowId] = (terr, a.Map.RowId, name);
-            if (!Zones.TryGetValue(terr, out var z)) continue;
-            var lvl = a.Level.Count > 0 ? a.Level[0].ValueNullable : null;
-            if (lvl is not { } l || l.Territory.RowId != terr) continue;   // no verified position: better absent than wrong
-            z.Aetherytes.Add((a.RowId, name, new WorldPoint(terr, a.Map.RowId, new Vector3(l.X, l.Y, l.Z))));
+            if (name.Length == 0) name = a.AethernetName.ValueNullable?.Name.ExtractText() ?? "";
+            var candidates = new List<Map>();
+            if (a.Map.ValueNullable is { } own) candidates.Add(own);
+            if (mapsByTerritory.TryGetValue(terr, out var more)) candidates.AddRange(more.Where(m => m.RowId != a.Map.RowId));
+            foreach (var m in candidates)
+            {
+                if (!markers.TryGetValue((m.MapMarkerRange, 3, a.RowId), out var px) &&
+                    !markers.TryGetValue((m.MapMarkerRange, 4, a.AethernetName.RowId), out px)) continue;
+                var c = m.SizeFactor / 100f;
+                var world = new Vector3((px.X - 1024f) / c - m.OffsetX, 0, (px.Y - 1024f) / c - m.OffsetY);
+                if (a.IsAetheryte) AetheryteInfo[a.RowId] = (terr, m.RowId, name);
+                if (Zones.TryGetValue(terr, out var z) && a.IsAetheryte) z.Aetherytes.Add((a.RowId, name, new WorldPoint(terr, m.RowId, world)));
+                break;
+            }
         }
 
         // Sightseeing log (vistas)
