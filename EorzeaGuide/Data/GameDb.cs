@@ -515,7 +515,7 @@ public sealed class GameDb
                     FromQuest = fromQuest.GetValueOrDefault(it.RowId), FromAchievement = fromAch.GetValueOrDefault(it.RowId),
                 };
                 if (sources.TryGetValue(it.RowId, out var s)) g.Sources = s;
-                else g.Sources.Add(it.IsUntradable ? "Duty drop / other (untradable)" : "Duty drop / market board / other");
+                else g.Sources.Add(it.IsUntradable ? "Source not indexed (untradable)" : "Source not indexed (tradable)");
                 if (points.TryGetValue(it.RowId, out var p)) g.SourcePoints = p;
                 list.Add(g);
             }

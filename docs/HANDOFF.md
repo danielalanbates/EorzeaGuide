@@ -73,6 +73,10 @@ not test combat, duty clears, weather/time windows, navmesh obstacles, arrow ori
 cross-zone travel, or the live game's UI and API behavior. Its zero-stall result is an
 offline planner result, not an in-game completion guarantee.
 
+Gear with no indexed vendor, recipe, quest, or achievement source now says "Source not
+indexed". Previously the plugin labeled every such item as a possible duty drop, which
+was unsupported for many items. The missing-source count is still about 10,700 items.
+
 ## Known gaps and next steps (in priority order)
 0. **Expand virtual-player scenarios** to all starting classes and Grand Companies, plus
    hunt, duty, achievement, and gear guidance. One class from each starting city is clean.
