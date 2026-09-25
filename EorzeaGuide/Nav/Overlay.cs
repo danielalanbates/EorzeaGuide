@@ -27,7 +27,9 @@ public sealed class Overlay
         var roadCol = ImGui.GetColorU32(cfg.RoadColor);
         var path = plugin.Nav.Path;
 
-        if (sameZone && cfg.DrawRoad && path.Count > 1)
+        // A direct line can pass through walls or cliffs. Only draw a ground road when
+        // vnavmesh has supplied an actual traversable path.
+        if (sameZone && cfg.DrawRoad && plugin.Nav.PathIsNavmesh && path.Count > 1)
         {
             // Road: segments plus chevrons every 2.5 yalms, capped to the next ~120 yalms.
             var walked = 0f;

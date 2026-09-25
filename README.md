@@ -27,12 +27,12 @@ it points.
 
 - **Waypoint arrow** at the top of the screen (Zygor-style), relative to your camera, with
   distance and the step text. It turns green when you arrive.
-- **Road**: the path to the objective drawn on the ground as a ribbon of chevrons. With the
-  **vnavmesh** plugin installed it is an obstacle-aware path that goes around walls, cliffs
-  and water; without it, a straight line.
-- **Most efficient order**: objectives in your current zone are ordered as the shortest tour
-  (nearest-neighbour plus 2-opt), so the road runs from one objective to the next instead of
-  zig-zagging.
+- **Road**: with **vnavmesh** installed and ready, the path to the objective is drawn on the
+  ground as a ribbon of chevrons along its obstacle-aware path. When no navigable path is
+  available, the guide shows a direct bearing and does not draw a road through obstacles.
+- **Objective order**: objectives in your current zone use a nearest-neighbour tour improved
+  by 2-opt. This is a straight-line-distance heuristic, not a guarantee of the shortest
+  walkable tour. Each displayed road leg uses vnavmesh pathfinding.
 
 ## Modes
 

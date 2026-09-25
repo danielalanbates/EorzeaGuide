@@ -57,6 +57,10 @@ Tests/DbTest         offline: full GameDb build against real sqpack via Lumina (
 | Virtual player (Tests/VPlayer) | built, not yet run on current data | needs a fully patched client (DbTest/VPlayer read sqpack) |
 | Runs in game | ❌ NOT YET VERIFIED | Dalamud has never been enabled in XIV on Mac on this Mac; the client was still downloading on 2026-09-25 |
 
+2026-09-25 follow-up: the ground road now draws only for a successful vnavmesh path.
+The direct-bearing arrow remains available when vnavmesh has no path. The zone objective
+order still uses straight-line distances and is not a proven shortest walkable tour.
+
 ## Known gaps and next steps (in priority order)
 0. **Run Tests/VPlayer** once the client is fully patched:
    `dotnet run -c Release -- <sqpack> questionable.tgz ./plugindir ./out 26 all` and fix every STALL/MISSED line.
