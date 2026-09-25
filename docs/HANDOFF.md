@@ -81,5 +81,8 @@ Tests/DbTest         offline: full GameDb build against real sqpack via Lumina (
   (the internal disk can't hold the client). The launcher sometimes fails a patch download
   ("could not download ... after 3 attempts"). Fix: curl that exact patch URL from the log into
   `.../XIV on Mac Support/patch/game/4e9a232b/` and reopen the launcher.
+- The launcher downloads each patch into the macOS user temp dir (`getconf DARWIN_USER_TEMP_DIR`,
+  on the INTERNAL disk) before moving it to x10. Each kill/crash leaves a 0.2-1.5 GB orphan
+  there (4.2 GB found on 2026-09-25). Delete orphans only after `lsof` shows no process has them open.
 - Lumina sheet structs are generated for the current game version; running DbTest against a
   partly patched client gives garbage fields (seen: 4,098 "seasonal" quests, 56 quest givers).
