@@ -24,8 +24,9 @@ it points.
 | Every piece of equipment | Item + GilShop/SpecialShop/Recipe/quest/achievement rewards | 29,057 items listed; about 18,300 have a known acquisition source in the plugin. Duty drops and other sources still need mapping |
 
 For a **local personal build**, the optional [LuminaSupplemental](https://github.com/Critical-Impact/LuminaSupplemental)
-duty-loot import raises known gear sources to 23,090 of 29,057 and identifies 1,455 more
-as no longer obtainable. The remaining 4,512 still need a source or status. Its GPL-3.0 data is
+duty-loot, relic, store, and item-source import raises known gear sources to 24,811 of 29,057
+and identifies 1,455 more as no longer obtainable. The remaining 2,791 still need a source
+or status. Its GPL-3.0 data is
 kept out of this repository and public releases. See [THIRD_PARTY.md](THIRD_PARTY.md).
 
 ## The arrow and the road
@@ -80,6 +81,7 @@ After building, a local supplemental gear index can be generated with:
 python3 tools/import_supplemental_gear.py \
   --supplemental "<LuminaSupplemental checkout>/src/LuminaSupplemental.Excel/Generated" \
   --duties "<current game CSV folder>/ContentFinderCondition.csv" \
+  --items "<current game CSV folder>/Item.csv" \
   --out EorzeaGuide/bin/Release/Data/SupplementalGearSources.json
 ```
 

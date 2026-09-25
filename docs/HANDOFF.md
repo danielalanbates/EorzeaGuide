@@ -82,10 +82,11 @@ indexed". Previously the plugin labeled every such item as a possible duty drop,
 was unsupported for many items. The missing-source count is still about 10,700 items.
 
 Optional personal-use LuminaSupplemental import: `tools/import_supplemental_gear.py`
-reads its GPL-3.0 duty-loot CSVs and the current ContentFinderCondition CSV, then writes
+reads its GPL-3.0 duty-loot, relic, online-store, and item-supplement CSVs plus current
+ContentFinderCondition and Item CSVs, then writes
 `EorzeaGuide/bin/Release/Data/SupplementalGearSources.json` in Downloads. The plugin loads
-it if present. On 2026-09-25 this raised known-source gear from 18,304 to 23,090 of
-29,057, and classified 1,455 more as no longer obtainable. The remaining 4,512 need
+it if present. On 2026-09-25 this raised known-source gear from 18,304 to 24,811 of
+29,057, and classified 1,455 more as no longer obtainable. The remaining 2,791 need
 other source types or status verification. The source checkout and generated index stay
 outside git; public packaging must omit the JSON.
 

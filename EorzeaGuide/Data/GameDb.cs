@@ -533,6 +533,10 @@ public sealed class GameDb
                     if (doc.RootElement.TryGetProperty("unobtainable", out var oldItems))
                         foreach (var item in oldItems.EnumerateArray())
                             if (item.TryGetUInt32(out var itemId)) unobtainable.Add(itemId);
+                    if (doc.RootElement.TryGetProperty("relicQuests", out var relicQuests))
+                        foreach (var item in relicQuests.EnumerateObject())
+                            if (uint.TryParse(item.Name, out var itemId) && item.Value.TryGetUInt32(out var questId)
+                                && Quests.ContainsKey(questId)) fromQuest.TryAdd(itemId, questId);
                 }
                 catch (Exception ex) { Plugin.Log.Warning(ex, "supplemental gear sources could not be loaded"); }
             }
