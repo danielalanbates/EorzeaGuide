@@ -42,7 +42,9 @@ static class Program {
     foreach (var k in db.Quests.Values.GroupBy(q => q.Kind)) Console.WriteLine($"  {k.Key}: {k.Count()}");
     Console.WriteLine($"MSQ chain {db.MainScenario.Count}: first {string.Join(" > ", db.MainScenario.Take(4).Select(q => q.Name))}  ...  last {db.MainScenario[^1].Name}");
     Console.WriteLine($"zones {db.Zones.Count}; aetherytes {db.Zones.Values.Sum(z => z.Aetherytes.Count)}; vistas {db.Zones.Values.Sum(z => z.Vistas.Count)}; aether currents {db.Zones.Values.Sum(z => z.AetherCurrents.Count)} (located {db.Zones.Values.Sum(z => z.AetherCurrents.Count(c => c.Where != null || c.Quest != 0))}); elite marks {db.Zones.Values.Sum(z => z.EliteMarks.Count)}; spawn points {db.Zones.Values.Sum(z => z.HuntSpawnPoints.Count)}");
-    Console.WriteLine($"achievements {db.Achievements.Count} (quest-linked {db.Achievements.Count(x => x.LinkedQuests.Length > 0)}); hunt targets {db.Hunts.Count}; duties {db.Duties.Count} (with unlock quest {db.Duties.Count(d => d.UnlockQuest != 0)})");
+    var relatedDuties = db.Duties.Count(d => d.RelatedQuest != 0);
+    Console.WriteLine($"achievements {db.Achievements.Count} (quest-linked {db.Achievements.Count(x => x.LinkedQuests.Length > 0)}); hunt targets {db.Hunts.Count}; duties {db.Duties.Count} (with unlock quest {db.Duties.Count(d => d.UnlockQuest != 0)}, related quest path {relatedDuties})");
+    if (relatedDuties < 100 || db.Duties.Single(d => d.CfcId == 944).RelatedQuest != 70336) return 1;
     var mln = db.Zones.Values.First(z => z.Name == "Middle La Noscea");
     var ae = mln.Aetherytes[0];
     var map = MapMath.WorldToMap(ae.Where.Map, ae.Where.Pos, dm);

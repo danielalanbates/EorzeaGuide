@@ -44,6 +44,9 @@ Tests/DbTest         offline: full GameDb build against real sqpack via Lumina (
   kills = `GetKillCount(markIndex, mobIndex)`. Elite spawn points come from HuntHelper (map coordinates, Y snapped via vnavmesh).
 - Gear sources: GilShopItem, SpecialShop, Recipe, quest rewards, achievement rewards; vendor
   location through `ENpcBase.ENpcData` -> shop id.
+- Duty related quests: Questionable `DutyOptions.ContentFinderConditionId` maps 243 duties
+  to a quest that enters them. These are kept separate from the 39 game-sheet confirmed
+  `InstanceContentUnlock` quests; a related quest is not necessarily an unlock quest.
 
 ## Status (update this table)
 
@@ -54,6 +57,7 @@ Tests/DbTest         offline: full GameDb build against real sqpack via Lumina (
 | GameDb build on real game files | ✅ | DbTest: 5,373 quests, 300 zones, 4,003 achievements, 1,272 hunt targets, 774 duties; 4,325/4,325 quest givers within 10y; 106/106 available aetheryte X/Z positions within 15y |
 | Library (SQLite + zone/MSQ docs + CSVs) | ✅ | `tools/verify_library.py`: 8/8 checks pass (docs/LIBRARY.md) |
 | Aetheryte positions | ✅ fixed | Were read from Aetheryte.Level (rows not in the Level sheet); now MapMarker, 197/197 within 15y |
+| Duty quest links | ✅ partial | PathsTest parses 268 duty links; DbTest attaches 243 distinct duty rows. Confirmed unlock links remain separate (39) |
 | Virtual player (Tests/VPlayer) | ✅ offline run | Starting classes 26 (Limsa), 1 (Ul'dah), and 4 (Gridania): 996/998/997 MSQ completed respectively, 0 available MSQ left, 0 stalls each. Zone run: 143 zones, 0 objectives left, 0 stalls. See limitations below |
 | Runs in game | ❌ NOT YET VERIFIED | Dalamud has never been enabled in XIV on Mac on this Mac; the client was still downloading on 2026-09-25 |
 
@@ -76,6 +80,10 @@ offline planner result, not an in-game completion guarantee.
 Gear with no indexed vendor, recipe, quest, or achievement source now says "Source not
 indexed". Previously the plugin labeled every such item as a possible duty drop, which
 was unsupported for many items. The missing-source count is still about 10,700 items.
+
+The Duties tab now offers a quest guide for 243 duties with a Questionable duty step,
+including paths fetched after the database first loads. It labels those as related quests
+and continues to label only game-sheet `InstanceContentUnlock` links as unlock quests.
 
 ## Known gaps and next steps (in priority order)
 0. **Expand virtual-player scenarios** to all starting classes and Grand Companies, plus

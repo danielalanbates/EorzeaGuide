@@ -10,9 +10,11 @@ static class Program {
     var map = QuestPathStore.ParseTar(gz);
     var steps = map.Values.Sum(v => v.Count);
     var withPos = map.Values.Sum(v => v.Count(s => s.HasPos));
-    Console.WriteLine($"quests={map.Count} steps={steps} withPos={withPos} ms={sw.ElapsedMilliseconds}");
+    var dutyLinks = map.Values.Sum(v => v.Count(s => s.Action == "Duty" && s.ContentFinderConditionId != 0));
+    Console.WriteLine($"quests={map.Count} steps={steps} withPos={withPos} dutyLinks={dutyLinks} ms={sw.ElapsedMilliseconds}");
     var q = map[3292];
     foreach (var s in q) Console.WriteLine($"  seq {s.Seq} {s.Action} terr {s.Territory} ({s.X:0.0},{s.Y:0.0},{s.Z:0.0}) data {s.DataId} ac {s.AetherCurrentId} '{s.Comment}'");
-    return map.Count > 4000 && q.Count == 6 ? 0 : 1;
+    return map.Count > 4000 && q.Count == 6 && dutyLinks > 100 &&
+           map[4800].Any(s => s.ContentFinderConditionId == 944) ? 0 : 1;
   }
 }

@@ -109,6 +109,7 @@ public sealed class DutyInfo
     public uint Expansion;
     public uint InstanceContentId;  // 0 when not an InstanceContent duty
     public uint UnlockQuest;
+    public uint RelatedQuest;       // quest whose Questionable path enters this duty
 }
 
 public sealed class GearItem

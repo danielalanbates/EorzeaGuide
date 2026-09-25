@@ -16,7 +16,8 @@ public sealed class QuestPathStore
     public const string SourceUrl = "https://codeload.github.com/PunishXIV/Questionable/tar.gz/refs/heads/new-main";
 
     public sealed record Step(byte Seq, string Action, uint Territory, float X, float Y, float Z,
-                              bool HasPos, uint DataId, uint AetherCurrentId, bool Fly, float Stop, string Comment);
+                              bool HasPos, uint DataId, uint AetherCurrentId, bool Fly, float Stop, string Comment,
+                              uint ContentFinderConditionId = 0);
 
     private readonly string indexFile;
     public Dictionary<ushort, List<Step>> Paths { get; private set; } = new();
@@ -112,7 +113,8 @@ public sealed class QuestPathStore
                     U(st, "DataId"), U(st, "AetherCurrentId"),
                     st.TryGetProperty("Fly", out var f) && f.ValueKind == JsonValueKind.True,
                     st.TryGetProperty("StopDistance", out var sd) && sd.TryGetSingle(out var sdv) ? sdv : 0,
-                    Str(st, "Comment")));
+                    Str(st, "Comment"),
+                    st.TryGetProperty("DutyOptions", out var duty) ? U(duty, "ContentFinderConditionId") : 0));
             }
         }
         return list;

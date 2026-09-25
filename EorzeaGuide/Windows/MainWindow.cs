@@ -347,6 +347,13 @@ public sealed class MainWindow : Window
                         ImGui.SameLine();
                         if (ImGui.SmallButton("Guide me to unlock")) Guide(GuideMode.Quest, () => Cfg.FocusQuest = uq.RowId);
                     }
+                    else if (d.RelatedQuest != 0 && !QDone(d.RelatedQuest) && Db.Quests.TryGetValue(d.RelatedQuest, out var rq))
+                    {
+                        ImGui.SameLine();
+                        ImGui.TextDisabled($"quest: {rq.Name}");
+                        ImGui.SameLine();
+                        if (ImGui.SmallButton("Guide me through quest")) Guide(GuideMode.Quest, () => Cfg.FocusQuest = rq.RowId);
+                    }
                     ImGui.PopID();
                 }
                 ImGui.TreePop();

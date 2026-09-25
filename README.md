@@ -20,7 +20,7 @@ it points.
 | Every zone | TerritoryType, Aetheryte, Adventure, AetherCurrent sheets | Quests starting there, aetherytes, sightseeing vistas, aether currents, elite marks |
 | Every achievement | Achievement sheet | All listed with live completion; quest-based ones are guidable |
 | Hunts | MobHuntOrder sheets + HuntHelper spawn points | Every bill target with kills; S/A/B spawn-point sweep per zone; exact bill-mob spots learned the first time you see one |
-| Duties ("missions") | ContentFinderCondition | Every duty, cleared or not, and the quest that unlocks it |
+| Duties ("missions") | ContentFinderCondition, game quest unlocks, Questionable duty steps | 774 listed; 39 have a confirmed unlock quest and 243 have a related quest path. Completion is shown where the game exposes it |
 | Every piece of equipment | Item + GilShop/SpecialShop/Recipe/quest/achievement rewards | 29,057 items listed; about 18,300 have a known acquisition source in the plugin. Duty drops and other sources still need mapping |
 
 ## The arrow and the road

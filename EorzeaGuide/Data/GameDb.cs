@@ -55,7 +55,7 @@ public sealed class GameDb
             Status = "quests"; BuildQuests(paths);
             Status = "achievements"; BuildAchievements();
             Status = "hunts"; BuildHunts(pluginDir);
-            Status = "duties"; BuildDuties();
+            Status = "duties"; BuildDuties(paths);
             Ready = true;
             Status = $"{Quests.Count} quests, {Zones.Count} zones, {Achievements.Count} achievements, {Hunts.Count} hunt marks, {Duties.Count} duties";
         }
@@ -70,6 +70,7 @@ public sealed class GameDb
     public void ApplyPaths(QuestPathStore paths)
     {
         foreach (var q in Quests.Values) AttachSteps(q, paths);
+        AttachDutyQuestPaths(paths);
     }
 
     private void BuildExpansions()
@@ -420,7 +421,7 @@ public sealed class GameDb
         }
     }
 
-    private void BuildDuties()
+    private void BuildDuties(QuestPathStore paths)
     {
         var unlockBy = new Dictionary<uint, uint>();
         foreach (var q in Quests.Values)
@@ -440,6 +441,18 @@ public sealed class GameDb
             });
         }
         Duties = Duties.OrderBy(d => d.Expansion).ThenBy(d => d.Level).ThenBy(d => d.Name).ToList();
+        AttachDutyQuestPaths(paths);
+    }
+
+    private void AttachDutyQuestPaths(QuestPathStore paths)
+    {
+        var relatedByCfc = new Dictionary<uint, uint>();
+        foreach (var (shortId, steps) in paths.Paths)
+            foreach (var step in steps)
+                if (step.Action == "Duty" && step.ContentFinderConditionId != 0)
+                    relatedByCfc.TryAdd(step.ContentFinderConditionId, (uint)shortId + 65536);
+        foreach (var duty in Duties)
+            duty.RelatedQuest = relatedByCfc.GetValueOrDefault(duty.CfcId);
     }
 
     /// Gear index is big (~40k items); built on demand the first time the Gear tab opens.
