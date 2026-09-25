@@ -76,7 +76,7 @@ Tests/DbTest         offline: full GameDb build against real sqpack via Lumina (
    step flag only.
 
 ## Rules that bit before
-- Build from `~/Downloads/EorzeaGuide-build`, never inside iCloud (eviction empties source files mid-build).
+- Source of truth: Google Drive `My Drive/Code/EorzeaGuide` (moved from iCloud 2026-09-25). Build from `~/Downloads/EorzeaGuide-build`, never inside a cloud-synced folder.
 - `~/Library/Application Support/XIV on Mac` is a symlink to `/Volumes/x10/Video Games/Mac/XIV on Mac Support`
   (the internal disk can't hold the client). The launcher sometimes fails a patch download
   ("could not download ... after 3 attempts"). Fix: curl that exact patch URL from the log into

@@ -65,7 +65,7 @@ Commands: `/eguide` (dashboard), `/eguide step` (toggle the step box), `/eguide 
 ## Build
 
 ```sh
-cp -R "<iCloud>/Code/EorzeaGuide" ~/Downloads/EorzeaGuide-build   # never build inside iCloud
+cp -R "$HOME/Library/CloudStorage/GoogleDrive-danielalanbates@gmail.com/My Drive/Code/EorzeaGuide" ~/Downloads/EorzeaGuide-build   # build outside cloud folders
 cd ~/Downloads/EorzeaGuide-build/EorzeaGuide
 ~/.dotnet/dotnet build -c Release
 ```
