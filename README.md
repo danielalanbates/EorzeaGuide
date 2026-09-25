@@ -23,6 +23,10 @@ it points.
 | Duties ("missions") | ContentFinderCondition, game quest unlocks, Questionable duty steps | 774 listed; 39 have a confirmed unlock quest and 243 have a related quest path. Completion is shown where the game exposes it |
 | Every piece of equipment | Item + GilShop/SpecialShop/Recipe/quest/achievement rewards | 29,057 items listed; about 18,300 have a known acquisition source in the plugin. Duty drops and other sources still need mapping |
 
+For a **local personal build**, the optional [LuminaSupplemental](https://github.com/Critical-Impact/LuminaSupplemental)
+duty-loot import raises known gear sources to about 23,090 of 29,057. Its GPL-3.0 data is
+kept out of this repository and public releases. See [THIRD_PARTY.md](THIRD_PARTY.md).
+
 ## The arrow and the road
 
 - **Waypoint arrow** at the top of the screen (Zygor-style), relative to your camera, with
@@ -68,6 +72,18 @@ cp -R "<your Google Drive Code folder>/EorzeaGuide" ~/Downloads/EorzeaGuide-buil
 cd ~/Downloads/EorzeaGuide-build/EorzeaGuide
 ~/.dotnet/dotnet build -c Release
 ```
+
+After building, a local supplemental gear index can be generated with:
+
+```sh
+python3 tools/import_supplemental_gear.py \
+  --supplemental "<LuminaSupplemental checkout>/src/LuminaSupplemental.Excel/Generated" \
+  --duties "<current game CSV folder>/ContentFinderCondition.csv" \
+  --out EorzeaGuide/bin/Release/Data/SupplementalGearSources.json
+```
+
+Run this from the project root after checking out LuminaSupplemental separately under
+Downloads. The output is gitignored. Remove it when preparing a public release.
 
 The project references Dalamud from
 `~/Library/Application Support/XIV on Mac/dalamud/Hooks/<version>/` (the path is in the

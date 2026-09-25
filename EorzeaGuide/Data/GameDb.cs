@@ -30,6 +30,7 @@ public sealed class GameDb
 
     private readonly IDataManager data;
     private Dictionary<uint, List<uint>> shopToNpcs = new();
+    private string pluginDirectory = "";
 
     public GameDb(IDataManager data) => this.data = data;
 
@@ -47,6 +48,7 @@ public sealed class GameDb
 
     public void Build(QuestPathStore paths, string pluginDir)
     {
+        pluginDirectory = pluginDir;
         try
         {
             Status = "expansions"; BuildExpansions();
@@ -513,6 +515,23 @@ public sealed class GameDb
             var fromAch = new Dictionary<uint, uint>();
             foreach (var a in Achievements)
                 if (a.RewardItem != 0) { fromAch.TryAdd(a.RewardItem, a.Id); Add(a.RewardItem, "Achievement: " + a.Name); }
+
+            // Optional personal-use data, generated locally from LuminaSupplemental.
+            // It is never bundled in the repository or public plugin releases.
+            var supplemental = Path.Combine(pluginDirectory, "Data", "SupplementalGearSources.json");
+            if (File.Exists(supplemental))
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(File.ReadAllText(supplemental));
+                    foreach (var item in doc.RootElement.GetProperty("sources").EnumerateObject())
+                        if (uint.TryParse(item.Name, out var itemId))
+                            foreach (var source in item.Value.EnumerateArray())
+                                if (source.ValueKind == JsonValueKind.String && source.GetString() is { Length: > 0 } label)
+                                    Add(itemId, label);
+                }
+                catch (Exception ex) { Plugin.Log.Warning(ex, "supplemental gear sources could not be loaded"); }
+            }
 
             var list = new List<GearItem>();
             foreach (var it in data.GetExcelSheet<Item>())
